@@ -4,7 +4,7 @@ import Signal exposing (Address)
 
 import Http
 
-import Html exposing (Html, Attribute, div, button, text, input)
+import Html exposing (Html, Attribute, div, button, text, input, span)
 import Html.Attributes exposing (type', placeholder, value, style)
 import Html.Events exposing (onClick, on, targetValue)
 
@@ -31,14 +31,12 @@ type alias Model =
   , password   : String
   , errMessage : Maybe String
   , user       : Maybe User
-  , result     : Maybe Http.Response
-  , me         : Maybe String
   }
 
 init : (Model, Effects Action)
 init =
   let
-    model = Model "" "" Nothing Nothing Nothing Nothing
+    model = Model "" "" Nothing Nothing
   in
     ( model, currentSession )
 
@@ -46,9 +44,9 @@ init =
 
 type Action = Username String
             | Password String
-            | SessionStatus (Maybe User)
+            | SessionStatus (Result Http.Error (Maybe User))
             | AuthRequest
-            | AuthResponse (Maybe User)
+            | AuthResponse (Result Http.Error User)
             | Logout
             | LogoutResponse (Maybe Http.Response)
 
@@ -73,8 +71,8 @@ update action model =
       , Effects.none
       )
 
-    SessionStatus maybeS ->
-      ( { model | user = maybeS }
+    SessionStatus result ->
+      ( sessionUpdate result model
       , Effects.none
       )
 
@@ -89,7 +87,7 @@ authenticate : Model -> Effects Action
 authenticate model =
   CouchDB.login model.username model.password
     |> Http.fromJson authenticationDecoder
-    |> Task.toMaybe
+    |> Task.toResult
     |> Task.map AuthResponse
     |> Effects.task
 
@@ -99,40 +97,62 @@ authenticationDecoder =
     ("name"  := string)
     ("roles" := list string)
 
-loginUpdate : Maybe User -> Model -> Model
+loginUpdate : Result Http.Error User -> Model -> Model
 loginUpdate authResult model =
   case authResult of
-    Nothing ->
+    Err error ->
       { model |
-        errMessage = Just "Username or password was not correct"
-      , user = authResult
+        errMessage = Just (responseError error)
+      , user = Nothing
       , password = ""
       }
 
-    Just user ->
-      { model | errMessage = Nothing, user = authResult, password = "" }
+    Ok user ->
+      { model | errMessage = Nothing, user = Just user, password = "" }
+
+sessionUpdate : Result Http.Error (Maybe User) -> Model -> Model
+sessionUpdate result model =
+  case result of
+    Err error ->
+      { model |
+        errMessage = Just (responseError error)
+      , user = Nothing
+      }
+
+    Ok maybeUser ->
+      { model | errMessage = Nothing, user = maybeUser }
+
+responseError : Http.Error -> String
+responseError error =
+  case error of
+    Http.BadResponse status msg ->
+      case status of
+        401 -> "Username and password are not correct."
+        _   -> toString status ++ " " ++ msg
+
+    Http.NetworkError ->
+      "You are disconnected"
+
+    Http.Timeout ->
+      "It is taking too long to get a response from the server"
+
+    Http.UnexpectedPayload msg ->
+      "Unexpected response: " ++ msg
 
 currentSession : Effects Action
 currentSession =
   CouchDB.currentSession
     |> Http.fromJson sessionDecoder
-    |> Task.toMaybe
+    |> Task.toResult
     |> Task.map SessionStatus
     |> Effects.task
 
-sessionDecoder : JD.Decoder User
+sessionDecoder : JD.Decoder (Maybe User)
 sessionDecoder =
-  object2 User
-    (JD.at ["userCtx", "name"] string)
-    (JD.at ["userCtx", "roles"] (list string))
-
-userRequest : Model -> Http.Request
-userRequest model =
-  { verb    = "GET"
-  , headers = []
-  , url     = "http://localhost:5984/_users/org.couchdb.user:" ++ model.username
-  , body    = Http.empty
-  }
+  JD.maybe ( object2 User
+              (JD.at ["userCtx", "name"] string)
+              (JD.at ["userCtx", "roles"] (list string))
+           )
 
 logout : Effects Action
 logout =
@@ -141,30 +161,29 @@ logout =
     |> Task.map LogoutResponse
     |> Effects.task
 
-
 -- View
 
 view : Address Action -> Model -> Html
 view address model =
   div []
-    [ field "text" address Username "Username" model.username
+    [ div []
+        [ div [ fieldNamedStyle "160px" ] [ text "" ]
+        , viewError model.errMessage
+        ]
+    , field "text" address Username "Username" model.username
     , field "password" address Password "Password" model.password
     , div []
         [ div [ fieldNamedStyle "160px" ] [ text "" ]
         , button [ onClick address AuthRequest ] [ text "Login" ]
         , button [ onClick address Logout ] [ text "Logout" ]
         ]
-    , div []
-        [ div [ fieldNamedStyle "160px" ] [ text "" ]
-        , viewError model.errMessage
-        ]
     ]
 
 viewError : Maybe String -> Html
 viewError em =
   case em of
-    Nothing  -> div [] [ text "" ]
-    Just msg -> div [] [ text msg ]
+    Nothing  -> span [] [ text "" ]
+    Just msg -> span [] [ text msg ]
 
 field : String
      -> Address Action

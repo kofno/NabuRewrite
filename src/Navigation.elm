@@ -39,7 +39,7 @@ view address model user =
     , ul []
       [ li [] [ text "Item 1" ]
       , li [] [ text "Item 2" ]
-      , li [] [ viewUser (Debug.log "user" user) ]
+      , li [] [ viewUser user ]
       ]
     ]
 
