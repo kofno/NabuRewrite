@@ -36,11 +36,7 @@ view : Address Action -> Model -> Maybe Login.User -> Html
 view address model user =
   div []
     [ a [href "#"] [ text model.brand ]
-    , ul []
-      [ li [] [ text "Item 1" ]
-      , li [] [ text "Item 2" ]
-      , li [] [ viewUser user ]
-      ]
+    , viewMenuItems user
     ]
 
 viewUser : Maybe Login.User -> Html
@@ -51,3 +47,17 @@ viewUser user =
 
     Just u ->
       text ("Welcome, " ++ u.name)
+
+viewMenuItems : Maybe Login.User -> Html
+viewMenuItems user =
+  case user of
+    Nothing ->
+      ul []
+        [ li [] [ viewUser user ] ]
+
+    Just _ ->
+      ul []
+        [ li [] [ text "Item 1" ]
+        , li [] [ text "Item 2" ]
+        , li [] [ viewUser user ]
+        ]

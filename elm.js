@@ -11189,21 +11189,26 @@ Elm.Navigation.make = function (_elm) {
             return $Html.text(A2($Basics._op["++"],"Welcome, ",_p0._0.name));
          }
    };
+   var viewMenuItems = function (user) {
+      var _p1 = user;
+      if (_p1.ctor === "Nothing") {
+            return A2($Html.ul,_U.list([]),_U.list([A2($Html.li,_U.list([]),_U.list([viewUser(user)]))]));
+         } else {
+            return A2($Html.ul,
+            _U.list([]),
+            _U.list([A2($Html.li,_U.list([]),_U.list([$Html.text("Item 1")]))
+                    ,A2($Html.li,_U.list([]),_U.list([$Html.text("Item 2")]))
+                    ,A2($Html.li,_U.list([]),_U.list([viewUser(user)]))]));
+         }
+   };
    var view = F3(function (address,model,user) {
-      return A2($Html.div,
-      _U.list([]),
-      _U.list([A2($Html.a,_U.list([$Html$Attributes.href("#")]),_U.list([$Html.text(model.brand)]))
-              ,A2($Html.ul,
-              _U.list([]),
-              _U.list([A2($Html.li,_U.list([]),_U.list([$Html.text("Item 1")]))
-                      ,A2($Html.li,_U.list([]),_U.list([$Html.text("Item 2")]))
-                      ,A2($Html.li,_U.list([]),_U.list([viewUser(user)]))]))]));
+      return A2($Html.div,_U.list([]),_U.list([A2($Html.a,_U.list([$Html$Attributes.href("#")]),_U.list([$Html.text(model.brand)])),viewMenuItems(user)]));
    });
    var update = F2(function (action,model) {    return {ctor: "_Tuple2",_0: model,_1: $Effects.none};});
    var NoOp = {ctor: "NoOp"};
    var Model = function (a) {    return {brand: a};};
    var init = {ctor: "_Tuple2",_0: Model("Nabu"),_1: $Effects.none};
-   return _elm.Navigation.values = {_op: _op,Model: Model,init: init,NoOp: NoOp,update: update,view: view,viewUser: viewUser};
+   return _elm.Navigation.values = {_op: _op,Model: Model,init: init,NoOp: NoOp,update: update,view: view,viewUser: viewUser,viewMenuItems: viewMenuItems};
 };
 Elm.Nabu = Elm.Nabu || {};
 Elm.Nabu.make = function (_elm) {
