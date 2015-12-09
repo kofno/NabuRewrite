@@ -9,10 +9,11 @@ import Login.Model  as Login
 import Login.Update as Login
 import Login.View   as Login
 
-import Navigation
+import Navigation.Model  as Navigation
+import Navigation.Update as Navigation
+import Navigation.View   as Navigation
 
 -- Model
-
 
 type alias Model =
   { navigation: Navigation.Model

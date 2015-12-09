@@ -11191,19 +11191,63 @@ Elm.Login.View.make = function (_elm) {
    return _elm.Login.View.values = {_op: _op,view: view};
 };
 Elm.Navigation = Elm.Navigation || {};
-Elm.Navigation.make = function (_elm) {
+Elm.Navigation.Model = Elm.Navigation.Model || {};
+Elm.Navigation.Model.make = function (_elm) {
    "use strict";
    _elm.Navigation = _elm.Navigation || {};
-   if (_elm.Navigation.values) return _elm.Navigation.values;
+   _elm.Navigation.Model = _elm.Navigation.Model || {};
+   if (_elm.Navigation.Model.values) return _elm.Navigation.Model.values;
+   var _U = Elm.Native.Utils.make(_elm),
+   $Basics = Elm.Basics.make(_elm),
+   $Debug = Elm.Debug.make(_elm),
+   $List = Elm.List.make(_elm),
+   $Maybe = Elm.Maybe.make(_elm),
+   $Result = Elm.Result.make(_elm),
+   $Signal = Elm.Signal.make(_elm);
+   var _op = {};
+   var Model = function (a) {    return {brand: a};};
+   var initialModel = Model("Nabu");
+   return _elm.Navigation.Model.values = {_op: _op,Model: Model,initialModel: initialModel};
+};
+Elm.Navigation = Elm.Navigation || {};
+Elm.Navigation.Update = Elm.Navigation.Update || {};
+Elm.Navigation.Update.make = function (_elm) {
+   "use strict";
+   _elm.Navigation = _elm.Navigation || {};
+   _elm.Navigation.Update = _elm.Navigation.Update || {};
+   if (_elm.Navigation.Update.values) return _elm.Navigation.Update.values;
    var _U = Elm.Native.Utils.make(_elm),
    $Basics = Elm.Basics.make(_elm),
    $Debug = Elm.Debug.make(_elm),
    $Effects = Elm.Effects.make(_elm),
+   $List = Elm.List.make(_elm),
+   $Maybe = Elm.Maybe.make(_elm),
+   $Navigation$Model = Elm.Navigation.Model.make(_elm),
+   $Result = Elm.Result.make(_elm),
+   $Signal = Elm.Signal.make(_elm);
+   var _op = {};
+   var update = F2(function (action,model) {    return {ctor: "_Tuple2",_0: model,_1: $Effects.none};});
+   var init = {ctor: "_Tuple2",_0: $Navigation$Model.initialModel,_1: $Effects.none};
+   var NoOp = {ctor: "NoOp"};
+   return _elm.Navigation.Update.values = {_op: _op,init: init,update: update,NoOp: NoOp};
+};
+Elm.Navigation = Elm.Navigation || {};
+Elm.Navigation.View = Elm.Navigation.View || {};
+Elm.Navigation.View.make = function (_elm) {
+   "use strict";
+   _elm.Navigation = _elm.Navigation || {};
+   _elm.Navigation.View = _elm.Navigation.View || {};
+   if (_elm.Navigation.View.values) return _elm.Navigation.View.values;
+   var _U = Elm.Native.Utils.make(_elm),
+   $Basics = Elm.Basics.make(_elm),
+   $Debug = Elm.Debug.make(_elm),
    $Html = Elm.Html.make(_elm),
    $Html$Attributes = Elm.Html.Attributes.make(_elm),
    $List = Elm.List.make(_elm),
    $Login$Model = Elm.Login.Model.make(_elm),
    $Maybe = Elm.Maybe.make(_elm),
+   $Navigation$Model = Elm.Navigation.Model.make(_elm),
+   $Navigation$Update = Elm.Navigation.Update.make(_elm),
    $Result = Elm.Result.make(_elm),
    $Signal = Elm.Signal.make(_elm);
    var _op = {};
@@ -11230,11 +11274,7 @@ Elm.Navigation.make = function (_elm) {
    var view = F3(function (address,model,user) {
       return A2($Html.div,_U.list([]),_U.list([A2($Html.a,_U.list([$Html$Attributes.href("#")]),_U.list([$Html.text(model.brand)])),viewMenuItems(user)]));
    });
-   var update = F2(function (action,model) {    return {ctor: "_Tuple2",_0: model,_1: $Effects.none};});
-   var NoOp = {ctor: "NoOp"};
-   var Model = function (a) {    return {brand: a};};
-   var init = {ctor: "_Tuple2",_0: Model("Nabu"),_1: $Effects.none};
-   return _elm.Navigation.values = {_op: _op,Model: Model,init: init,NoOp: NoOp,update: update,view: view,viewUser: viewUser,viewMenuItems: viewMenuItems};
+   return _elm.Navigation.View.values = {_op: _op,view: view};
 };
 Elm.Nabu = Elm.Nabu || {};
 Elm.Nabu.make = function (_elm) {
@@ -11251,7 +11291,9 @@ Elm.Nabu.make = function (_elm) {
    $Login$Update = Elm.Login.Update.make(_elm),
    $Login$View = Elm.Login.View.make(_elm),
    $Maybe = Elm.Maybe.make(_elm),
-   $Navigation = Elm.Navigation.make(_elm),
+   $Navigation$Model = Elm.Navigation.Model.make(_elm),
+   $Navigation$Update = Elm.Navigation.Update.make(_elm),
+   $Navigation$View = Elm.Navigation.View.make(_elm),
    $Result = Elm.Result.make(_elm),
    $Signal = Elm.Signal.make(_elm);
    var _op = {};
@@ -11260,7 +11302,7 @@ Elm.Nabu.make = function (_elm) {
    var view = F2(function (address,model) {
       return A2($Html.div,
       _U.list([]),
-      _U.list([A3($Navigation.view,A2($Signal.forwardTo,address,Navigate),model.navigation,model.session)
+      _U.list([A3($Navigation$View.view,A2($Signal.forwardTo,address,Navigate),model.navigation,model.session)
               ,A2($Login$View.view,A2($Signal.forwardTo,address,Authenticate),model.login)]));
    });
    var Model = F3(function (a,b,c) {    return {navigation: a,login: b,session: c};});
@@ -11268,7 +11310,7 @@ Elm.Nabu.make = function (_elm) {
       var _p0 = $Login$Update.init;
       var login = _p0._0;
       var loginFx = _p0._1;
-      var _p1 = $Navigation.init;
+      var _p1 = $Navigation$Update.init;
       var nav = _p1._0;
       var navFx = _p1._1;
       return {ctor: "_Tuple2"
@@ -11278,7 +11320,7 @@ Elm.Nabu.make = function (_elm) {
    var update = F2(function (action,model) {
       var _p2 = action;
       if (_p2.ctor === "Navigate") {
-            var _p3 = A2($Navigation.update,_p2._0,model.navigation);
+            var _p3 = A2($Navigation$Update.update,_p2._0,model.navigation);
             var nav = _p3._0;
             var fx = _p3._1;
             return {ctor: "_Tuple2",_0: A3(Model,nav,model.login,model.session),_1: A2($Effects.map,Navigate,fx)};

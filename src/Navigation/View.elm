@@ -1,6 +1,7 @@
-module Navigation where
+module Navigation.View
+  ( view
+  ) where
 
-import Effects exposing (Effects)
 import Signal exposing (Address)
 
 import Html exposing (Html, div, ul, li, a, text)
@@ -8,29 +9,8 @@ import Html.Attributes exposing (href)
 
 import Login.Model as Login
 
--- Model
-
-type alias Model =
-  { brand: String
-  }
-
-init : (Model, Effects Action)
-init =
-    ( Model "Nabu"
-    , Effects.none
-    )
-
--- Update
-
-type Action = NoOp
-
-update :  Action -> Model -> (Model, Effects Action)
-update action model =
-  ( model
-  , Effects.none
-  )
-
--- View
+import Navigation.Model exposing (Model)
+import Navigation.Update exposing (Action)
 
 view : Address Action -> Model -> Maybe Login.User -> Html
 view address model user =
