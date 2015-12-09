@@ -6,7 +6,7 @@ import Signal exposing (Address)
 import Html exposing (Html, div, ul, li, a, text)
 import Html.Attributes exposing (href)
 
-import Login
+import Login.Model as Login
 
 -- Model
 

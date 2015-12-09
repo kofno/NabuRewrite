@@ -11016,25 +11016,140 @@ Elm.CouchDB.make = function (_elm) {
    return _elm.CouchDB.values = {_op: _op,login: login,logout: logout,currentSession: currentSession};
 };
 Elm.Login = Elm.Login || {};
-Elm.Login.make = function (_elm) {
+Elm.Login.Model = Elm.Login.Model || {};
+Elm.Login.Model.make = function (_elm) {
    "use strict";
    _elm.Login = _elm.Login || {};
-   if (_elm.Login.values) return _elm.Login.values;
+   _elm.Login.Model = _elm.Login.Model || {};
+   if (_elm.Login.Model.values) return _elm.Login.Model.values;
+   var _U = Elm.Native.Utils.make(_elm),
+   $Basics = Elm.Basics.make(_elm),
+   $Debug = Elm.Debug.make(_elm),
+   $List = Elm.List.make(_elm),
+   $Maybe = Elm.Maybe.make(_elm),
+   $Result = Elm.Result.make(_elm),
+   $Signal = Elm.Signal.make(_elm);
+   var _op = {};
+   var Model = F4(function (a,b,c,d) {    return {username: a,password: b,errMessage: c,user: d};});
+   var initialModel = A4(Model,"","",$Maybe.Nothing,$Maybe.Nothing);
+   var User = F2(function (a,b) {    return {name: a,roles: b};});
+   return _elm.Login.Model.values = {_op: _op,User: User,Model: Model,initialModel: initialModel};
+};
+Elm.Login = Elm.Login || {};
+Elm.Login.Update = Elm.Login.Update || {};
+Elm.Login.Update.make = function (_elm) {
+   "use strict";
+   _elm.Login = _elm.Login || {};
+   _elm.Login.Update = _elm.Login.Update || {};
+   if (_elm.Login.Update.values) return _elm.Login.Update.values;
    var _U = Elm.Native.Utils.make(_elm),
    $Basics = Elm.Basics.make(_elm),
    $CouchDB = Elm.CouchDB.make(_elm),
    $Debug = Elm.Debug.make(_elm),
    $Effects = Elm.Effects.make(_elm),
-   $Html = Elm.Html.make(_elm),
-   $Html$Attributes = Elm.Html.Attributes.make(_elm),
-   $Html$Events = Elm.Html.Events.make(_elm),
    $Http = Elm.Http.make(_elm),
    $Json$Decode = Elm.Json.Decode.make(_elm),
    $List = Elm.List.make(_elm),
+   $Login$Model = Elm.Login.Model.make(_elm),
    $Maybe = Elm.Maybe.make(_elm),
    $Result = Elm.Result.make(_elm),
    $Signal = Elm.Signal.make(_elm),
    $Task = Elm.Task.make(_elm);
+   var _op = {};
+   var sessionDecoder = $Json$Decode.maybe(A3($Json$Decode.object2,
+   $Login$Model.User,
+   A2($Json$Decode.at,_U.list(["userCtx","name"]),$Json$Decode.string),
+   A2($Json$Decode.at,_U.list(["userCtx","roles"]),$Json$Decode.list($Json$Decode.string))));
+   var responseError = function (error) {
+      var _p0 = error;
+      switch (_p0.ctor)
+      {case "BadResponse": var _p2 = _p0._0;
+           var _p1 = _p2;
+           if (_p1 === 401) {
+                 return "Username and password are not correct.";
+              } else {
+                 return A2($Basics._op["++"],$Basics.toString(_p2),A2($Basics._op["++"]," ",_p0._1));
+              }
+         case "NetworkError": return "You are disconnected";
+         case "Timeout": return "It is taking too long to get a response from the server";
+         default: return A2($Basics._op["++"],"Unexpected response: ",_p0._0);}
+   };
+   var sessionUpdate = F2(function (result,model) {
+      var _p3 = result;
+      if (_p3.ctor === "Err") {
+            return _U.update(model,{errMessage: $Maybe.Just(responseError(_p3._0)),user: $Maybe.Nothing});
+         } else {
+            return _U.update(model,{errMessage: $Maybe.Nothing,user: _p3._0});
+         }
+   });
+   var loginUpdate = F2(function (authResult,model) {
+      var _p4 = authResult;
+      if (_p4.ctor === "Err") {
+            return _U.update(model,{errMessage: $Maybe.Just(responseError(_p4._0)),user: $Maybe.Nothing,password: ""});
+         } else {
+            return _U.update(model,{errMessage: $Maybe.Nothing,user: $Maybe.Just(_p4._0),password: ""});
+         }
+   });
+   var authenticationDecoder = A3($Json$Decode.object2,
+   $Login$Model.User,
+   A2($Json$Decode._op[":="],"name",$Json$Decode.string),
+   A2($Json$Decode._op[":="],"roles",$Json$Decode.list($Json$Decode.string)));
+   var LogoutResponse = function (a) {    return {ctor: "LogoutResponse",_0: a};};
+   var logout = $Effects.task(A2($Task.map,LogoutResponse,$Task.toMaybe($CouchDB.logout)));
+   var Logout = {ctor: "Logout"};
+   var AuthResponse = function (a) {    return {ctor: "AuthResponse",_0: a};};
+   var authenticate = function (model) {
+      return $Effects.task(A2($Task.map,
+      AuthResponse,
+      $Task.toResult(A2($Http.fromJson,authenticationDecoder,A2($CouchDB.login,model.username,model.password)))));
+   };
+   var AuthRequest = {ctor: "AuthRequest"};
+   var SessionStatus = function (a) {    return {ctor: "SessionStatus",_0: a};};
+   var currentSession = $Effects.task(A2($Task.map,SessionStatus,$Task.toResult(A2($Http.fromJson,sessionDecoder,$CouchDB.currentSession))));
+   var init = {ctor: "_Tuple2",_0: $Login$Model.initialModel,_1: currentSession};
+   var update = F2(function (action,model) {
+      var _p5 = action;
+      switch (_p5.ctor)
+      {case "Username": return {ctor: "_Tuple2",_0: _U.update(model,{username: _p5._0}),_1: $Effects.none};
+         case "Password": return {ctor: "_Tuple2",_0: _U.update(model,{password: _p5._0}),_1: $Effects.none};
+         case "AuthRequest": return {ctor: "_Tuple2",_0: model,_1: authenticate(model)};
+         case "AuthResponse": return {ctor: "_Tuple2",_0: A2(loginUpdate,_p5._0,model),_1: $Effects.none};
+         case "SessionStatus": return {ctor: "_Tuple2",_0: A2(sessionUpdate,_p5._0,model),_1: $Effects.none};
+         case "Logout": return {ctor: "_Tuple2",_0: model,_1: logout};
+         default: return init;}
+   });
+   var Password = function (a) {    return {ctor: "Password",_0: a};};
+   var Username = function (a) {    return {ctor: "Username",_0: a};};
+   return _elm.Login.Update.values = {_op: _op
+                                     ,update: update
+                                     ,init: init
+                                     ,Username: Username
+                                     ,Password: Password
+                                     ,SessionStatus: SessionStatus
+                                     ,AuthRequest: AuthRequest
+                                     ,AuthResponse: AuthResponse
+                                     ,Logout: Logout
+                                     ,LogoutResponse: LogoutResponse};
+};
+Elm.Login = Elm.Login || {};
+Elm.Login.View = Elm.Login.View || {};
+Elm.Login.View.make = function (_elm) {
+   "use strict";
+   _elm.Login = _elm.Login || {};
+   _elm.Login.View = _elm.Login.View || {};
+   if (_elm.Login.View.values) return _elm.Login.View.values;
+   var _U = Elm.Native.Utils.make(_elm),
+   $Basics = Elm.Basics.make(_elm),
+   $Debug = Elm.Debug.make(_elm),
+   $Html = Elm.Html.make(_elm),
+   $Html$Attributes = Elm.Html.Attributes.make(_elm),
+   $Html$Events = Elm.Html.Events.make(_elm),
+   $List = Elm.List.make(_elm),
+   $Login$Model = Elm.Login.Model.make(_elm),
+   $Login$Update = Elm.Login.Update.make(_elm),
+   $Maybe = Elm.Maybe.make(_elm),
+   $Result = Elm.Result.make(_elm),
+   $Signal = Elm.Signal.make(_elm);
    var _op = {};
    var fieldNamedStyle = function (px) {
       return $Html$Attributes.style(_U.list([{ctor: "_Tuple2",_0: "width",_1: px}
@@ -11061,108 +11176,19 @@ Elm.Login.make = function (_elm) {
             return A2($Html.span,_U.list([]),_U.list([$Html.text(_p0._0)]));
          }
    };
-   var responseError = function (error) {
-      var _p1 = error;
-      switch (_p1.ctor)
-      {case "BadResponse": var _p3 = _p1._0;
-           var _p2 = _p3;
-           if (_p2 === 401) {
-                 return "Username and password are not correct.";
-              } else {
-                 return A2($Basics._op["++"],$Basics.toString(_p3),A2($Basics._op["++"]," ",_p1._1));
-              }
-         case "NetworkError": return "You are disconnected";
-         case "Timeout": return "It is taking too long to get a response from the server";
-         default: return A2($Basics._op["++"],"Unexpected response: ",_p1._0);}
-   };
-   var sessionUpdate = F2(function (result,model) {
-      var _p4 = result;
-      if (_p4.ctor === "Err") {
-            return _U.update(model,{errMessage: $Maybe.Just(responseError(_p4._0)),user: $Maybe.Nothing});
-         } else {
-            return _U.update(model,{errMessage: $Maybe.Nothing,user: _p4._0});
-         }
-   });
-   var loginUpdate = F2(function (authResult,model) {
-      var _p5 = authResult;
-      if (_p5.ctor === "Err") {
-            return _U.update(model,{errMessage: $Maybe.Just(responseError(_p5._0)),user: $Maybe.Nothing,password: ""});
-         } else {
-            return _U.update(model,{errMessage: $Maybe.Nothing,user: $Maybe.Just(_p5._0),password: ""});
-         }
-   });
-   var LogoutResponse = function (a) {    return {ctor: "LogoutResponse",_0: a};};
-   var logout = $Effects.task(A2($Task.map,LogoutResponse,$Task.toMaybe($CouchDB.logout)));
-   var Logout = {ctor: "Logout"};
-   var AuthResponse = function (a) {    return {ctor: "AuthResponse",_0: a};};
-   var AuthRequest = {ctor: "AuthRequest"};
-   var SessionStatus = function (a) {    return {ctor: "SessionStatus",_0: a};};
-   var Password = function (a) {    return {ctor: "Password",_0: a};};
-   var Username = function (a) {    return {ctor: "Username",_0: a};};
    var view = F2(function (address,model) {
       return A2($Html.div,
       _U.list([]),
       _U.list([A2($Html.div,_U.list([]),_U.list([A2($Html.div,_U.list([fieldNamedStyle("160px")]),_U.list([$Html.text("")])),viewError(model.errMessage)]))
-              ,A5(field,"text",address,Username,"Username",model.username)
-              ,A5(field,"password",address,Password,"Password",model.password)
+              ,A5(field,"text",address,$Login$Update.Username,"Username",model.username)
+              ,A5(field,"password",address,$Login$Update.Password,"Password",model.password)
               ,A2($Html.div,
               _U.list([]),
               _U.list([A2($Html.div,_U.list([fieldNamedStyle("160px")]),_U.list([$Html.text("")]))
-                      ,A2($Html.button,_U.list([A2($Html$Events.onClick,address,AuthRequest)]),_U.list([$Html.text("Login")]))
-                      ,A2($Html.button,_U.list([A2($Html$Events.onClick,address,Logout)]),_U.list([$Html.text("Logout")]))]))]));
+                      ,A2($Html.button,_U.list([A2($Html$Events.onClick,address,$Login$Update.AuthRequest)]),_U.list([$Html.text("Login")]))
+                      ,A2($Html.button,_U.list([A2($Html$Events.onClick,address,$Login$Update.Logout)]),_U.list([$Html.text("Logout")]))]))]));
    });
-   var Model = F4(function (a,b,c,d) {    return {username: a,password: b,errMessage: c,user: d};});
-   var User = F2(function (a,b) {    return {name: a,roles: b};});
-   var authenticationDecoder = A3($Json$Decode.object2,
-   User,
-   A2($Json$Decode._op[":="],"name",$Json$Decode.string),
-   A2($Json$Decode._op[":="],"roles",$Json$Decode.list($Json$Decode.string)));
-   var authenticate = function (model) {
-      return $Effects.task(A2($Task.map,
-      AuthResponse,
-      $Task.toResult(A2($Http.fromJson,authenticationDecoder,A2($CouchDB.login,model.username,model.password)))));
-   };
-   var sessionDecoder = $Json$Decode.maybe(A3($Json$Decode.object2,
-   User,
-   A2($Json$Decode.at,_U.list(["userCtx","name"]),$Json$Decode.string),
-   A2($Json$Decode.at,_U.list(["userCtx","roles"]),$Json$Decode.list($Json$Decode.string))));
-   var currentSession = $Effects.task(A2($Task.map,SessionStatus,$Task.toResult(A2($Http.fromJson,sessionDecoder,$CouchDB.currentSession))));
-   var init = function () {    var model = A4(Model,"","",$Maybe.Nothing,$Maybe.Nothing);return {ctor: "_Tuple2",_0: model,_1: currentSession};}();
-   var update = F2(function (action,model) {
-      var _p6 = action;
-      switch (_p6.ctor)
-      {case "Username": return {ctor: "_Tuple2",_0: _U.update(model,{username: _p6._0}),_1: $Effects.none};
-         case "Password": return {ctor: "_Tuple2",_0: _U.update(model,{password: _p6._0}),_1: $Effects.none};
-         case "AuthRequest": return {ctor: "_Tuple2",_0: model,_1: authenticate(model)};
-         case "AuthResponse": return {ctor: "_Tuple2",_0: A2(loginUpdate,_p6._0,model),_1: $Effects.none};
-         case "SessionStatus": return {ctor: "_Tuple2",_0: A2(sessionUpdate,_p6._0,model),_1: $Effects.none};
-         case "Logout": return {ctor: "_Tuple2",_0: model,_1: logout};
-         default: return init;}
-   });
-   return _elm.Login.values = {_op: _op
-                              ,User: User
-                              ,Model: Model
-                              ,init: init
-                              ,Username: Username
-                              ,Password: Password
-                              ,SessionStatus: SessionStatus
-                              ,AuthRequest: AuthRequest
-                              ,AuthResponse: AuthResponse
-                              ,Logout: Logout
-                              ,LogoutResponse: LogoutResponse
-                              ,update: update
-                              ,authenticate: authenticate
-                              ,authenticationDecoder: authenticationDecoder
-                              ,loginUpdate: loginUpdate
-                              ,sessionUpdate: sessionUpdate
-                              ,responseError: responseError
-                              ,currentSession: currentSession
-                              ,sessionDecoder: sessionDecoder
-                              ,logout: logout
-                              ,view: view
-                              ,viewError: viewError
-                              ,field: field
-                              ,fieldNamedStyle: fieldNamedStyle};
+   return _elm.Login.View.values = {_op: _op,view: view};
 };
 Elm.Navigation = Elm.Navigation || {};
 Elm.Navigation.make = function (_elm) {
@@ -11176,7 +11202,7 @@ Elm.Navigation.make = function (_elm) {
    $Html = Elm.Html.make(_elm),
    $Html$Attributes = Elm.Html.Attributes.make(_elm),
    $List = Elm.List.make(_elm),
-   $Login = Elm.Login.make(_elm),
+   $Login$Model = Elm.Login.Model.make(_elm),
    $Maybe = Elm.Maybe.make(_elm),
    $Result = Elm.Result.make(_elm),
    $Signal = Elm.Signal.make(_elm);
@@ -11221,7 +11247,9 @@ Elm.Nabu.make = function (_elm) {
    $Effects = Elm.Effects.make(_elm),
    $Html = Elm.Html.make(_elm),
    $List = Elm.List.make(_elm),
-   $Login = Elm.Login.make(_elm),
+   $Login$Model = Elm.Login.Model.make(_elm),
+   $Login$Update = Elm.Login.Update.make(_elm),
+   $Login$View = Elm.Login.View.make(_elm),
    $Maybe = Elm.Maybe.make(_elm),
    $Navigation = Elm.Navigation.make(_elm),
    $Result = Elm.Result.make(_elm),
@@ -11233,11 +11261,11 @@ Elm.Nabu.make = function (_elm) {
       return A2($Html.div,
       _U.list([]),
       _U.list([A3($Navigation.view,A2($Signal.forwardTo,address,Navigate),model.navigation,model.session)
-              ,A2($Login.view,A2($Signal.forwardTo,address,Authenticate),model.login)]));
+              ,A2($Login$View.view,A2($Signal.forwardTo,address,Authenticate),model.login)]));
    });
    var Model = F3(function (a,b,c) {    return {navigation: a,login: b,session: c};});
    var init = function () {
-      var _p0 = $Login.init;
+      var _p0 = $Login$Update.init;
       var login = _p0._0;
       var loginFx = _p0._1;
       var _p1 = $Navigation.init;
@@ -11255,7 +11283,7 @@ Elm.Nabu.make = function (_elm) {
             var fx = _p3._1;
             return {ctor: "_Tuple2",_0: A3(Model,nav,model.login,model.session),_1: A2($Effects.map,Navigate,fx)};
          } else {
-            var _p4 = A2($Login.update,_p2._0,model.login);
+            var _p4 = A2($Login$Update.update,_p2._0,model.login);
             var auth = _p4._0;
             var fx = _p4._1;
             return {ctor: "_Tuple2",_0: A3(Model,model.navigation,auth,auth.user),_1: A2($Effects.map,Authenticate,fx)};

@@ -1,46 +1,18 @@
-module Login where
+module Login.Update
+  ( update
+  , init
+  , Action(..)
+  ) where
 
-import Signal exposing (Address)
+import Login.Model exposing (Model, User, initialModel)
 
-import Http
-
-import Html exposing (Html, Attribute, div, button, text, input, span)
-import Html.Attributes exposing (type', placeholder, value, style)
-import Html.Events exposing (onClick, on, targetValue)
-
-import Task
 import Effects exposing (Effects)
-
-import Debug
-
-import Json.Encode as JE
-import Json.Decode exposing ((:=), string, list, object2)
-import Json.Decode as JD
+import Task
 
 import CouchDB
+import Http
 
--- Model
-
-type alias User =
-  { name : String
-  , roles : List String
-  }
-
-type alias Model =
-  { username   : String
-  , password   : String
-  , errMessage : Maybe String
-  , user       : Maybe User
-  }
-
-init : (Model, Effects Action)
-init =
-  let
-    model = Model "" "" Nothing Nothing
-  in
-    ( model, currentSession )
-
--- Update
+import Json.Decode exposing (Decoder, (:=), object2, string, list, at, maybe)
 
 type Action = Username String
             | Password String
@@ -82,6 +54,8 @@ update action model =
     LogoutResponse _ ->
       init
 
+init : (Model, Effects Action)
+init = ( initialModel, currentSession )
 
 authenticate : Model -> Effects Action
 authenticate model =
@@ -91,7 +65,7 @@ authenticate model =
     |> Task.map AuthResponse
     |> Effects.task
 
-authenticationDecoder : JD.Decoder User
+authenticationDecoder : Decoder User
 authenticationDecoder =
   object2 User
     ("name"  := string)
@@ -147,11 +121,11 @@ currentSession =
     |> Task.map SessionStatus
     |> Effects.task
 
-sessionDecoder : JD.Decoder (Maybe User)
+sessionDecoder : Decoder (Maybe User)
 sessionDecoder =
-  JD.maybe ( object2 User
-              (JD.at ["userCtx", "name"] string)
-              (JD.at ["userCtx", "roles"] (list string))
+  maybe ( object2 User
+              (at ["userCtx", "name"] string)
+              (at ["userCtx", "roles"] (list string))
            )
 
 logout : Effects Action
@@ -161,53 +135,4 @@ logout =
     |> Task.map LogoutResponse
     |> Effects.task
 
--- View
 
-view : Address Action -> Model -> Html
-view address model =
-  div []
-    [ div []
-        [ div [ fieldNamedStyle "160px" ] [ text "" ]
-        , viewError model.errMessage
-        ]
-    , field "text" address Username "Username" model.username
-    , field "password" address Password "Password" model.password
-    , div []
-        [ div [ fieldNamedStyle "160px" ] [ text "" ]
-        , button [ onClick address AuthRequest ] [ text "Login" ]
-        , button [ onClick address Logout ] [ text "Logout" ]
-        ]
-    ]
-
-viewError : Maybe String -> Html
-viewError em =
-  case em of
-    Nothing  -> span [] [ text "" ]
-    Just msg -> span [] [ text msg ]
-
-field : String
-     -> Address Action
-     -> (String -> Action)
-     -> String
-     -> String
-     -> Html
-field fieldType address toAction name content =
-  div []
-    [ div [ fieldNamedStyle "160px" ] [ text name ]
-    , input
-        [ type' fieldType
-        , placeholder name
-        , value content
-        , on "input" targetValue (\s -> Signal.message address (toAction s))
-        ]
-        []
-    ]
-
-fieldNamedStyle : String -> Attribute
-fieldNamedStyle px =
-  style
-    [ ("width", px)
-    , ("padding", "10px")
-    , ("text-align", "right")
-    , ("display", "inline-block")
-    ]
