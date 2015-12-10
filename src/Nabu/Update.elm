@@ -1,25 +1,19 @@
-module Nabu where
+module Nabu.Update
+  ( init
+  , update
+  , Action(..)
+  ) where
 
 import Effects exposing (Effects)
-import Signal
 
-import Html exposing (Html, div)
+import Nabu.Model exposing (Model)
 
-import Login.Model  as Login
 import Login.Update as Login
-import Login.View   as Login
-
-import Navigation.Model  as Navigation
 import Navigation.Update as Navigation
-import Navigation.View   as Navigation
 
--- Model
-
-type alias Model =
-  { navigation: Navigation.Model
-  , login:      Login.Model
-  , session:    Maybe Login.User
-  }
+type Action
+  = Navigate Navigation.Action
+  | Authenticate Login.Action
 
 init : (Model, Effects Action)
 init =
@@ -33,11 +27,6 @@ init =
         , Effects.map Authenticate loginFx
         ]
     )
-
--- Update
-
-type Action = Navigate Navigation.Action
-            | Authenticate Login.Action
 
 update : Action -> Model -> (Model, Effects Action)
 update action model =
@@ -58,11 +47,3 @@ update action model =
         , Effects.map Authenticate fx
         )
 
--- View
-
-view : Signal.Address Action -> Model -> Html
-view address model =
-  div []
-    [ Navigation.view (Signal.forwardTo address Navigate) model.navigation model.session
-    , Login.view (Signal.forwardTo address Authenticate) model.login
-    ]

@@ -11209,6 +11209,26 @@ Elm.Navigation.Model.make = function (_elm) {
    var initialModel = Model("Nabu");
    return _elm.Navigation.Model.values = {_op: _op,Model: Model,initialModel: initialModel};
 };
+Elm.Nabu = Elm.Nabu || {};
+Elm.Nabu.Model = Elm.Nabu.Model || {};
+Elm.Nabu.Model.make = function (_elm) {
+   "use strict";
+   _elm.Nabu = _elm.Nabu || {};
+   _elm.Nabu.Model = _elm.Nabu.Model || {};
+   if (_elm.Nabu.Model.values) return _elm.Nabu.Model.values;
+   var _U = Elm.Native.Utils.make(_elm),
+   $Basics = Elm.Basics.make(_elm),
+   $Debug = Elm.Debug.make(_elm),
+   $List = Elm.List.make(_elm),
+   $Login$Model = Elm.Login.Model.make(_elm),
+   $Maybe = Elm.Maybe.make(_elm),
+   $Navigation$Model = Elm.Navigation.Model.make(_elm),
+   $Result = Elm.Result.make(_elm),
+   $Signal = Elm.Signal.make(_elm);
+   var _op = {};
+   var Model = F3(function (a,b,c) {    return {navigation: a,login: b,session: c};});
+   return _elm.Nabu.Model.values = {_op: _op,Model: Model};
+};
 Elm.Navigation = Elm.Navigation || {};
 Elm.Navigation.Update = Elm.Navigation.Update || {};
 Elm.Navigation.Update.make = function (_elm) {
@@ -11230,6 +11250,54 @@ Elm.Navigation.Update.make = function (_elm) {
    var init = {ctor: "_Tuple2",_0: $Navigation$Model.initialModel,_1: $Effects.none};
    var NoOp = {ctor: "NoOp"};
    return _elm.Navigation.Update.values = {_op: _op,init: init,update: update,NoOp: NoOp};
+};
+Elm.Nabu = Elm.Nabu || {};
+Elm.Nabu.Update = Elm.Nabu.Update || {};
+Elm.Nabu.Update.make = function (_elm) {
+   "use strict";
+   _elm.Nabu = _elm.Nabu || {};
+   _elm.Nabu.Update = _elm.Nabu.Update || {};
+   if (_elm.Nabu.Update.values) return _elm.Nabu.Update.values;
+   var _U = Elm.Native.Utils.make(_elm),
+   $Basics = Elm.Basics.make(_elm),
+   $Debug = Elm.Debug.make(_elm),
+   $Effects = Elm.Effects.make(_elm),
+   $List = Elm.List.make(_elm),
+   $Login$Update = Elm.Login.Update.make(_elm),
+   $Maybe = Elm.Maybe.make(_elm),
+   $Nabu$Model = Elm.Nabu.Model.make(_elm),
+   $Navigation$Update = Elm.Navigation.Update.make(_elm),
+   $Result = Elm.Result.make(_elm),
+   $Signal = Elm.Signal.make(_elm);
+   var _op = {};
+   var Authenticate = function (a) {    return {ctor: "Authenticate",_0: a};};
+   var Navigate = function (a) {    return {ctor: "Navigate",_0: a};};
+   var init = function () {
+      var _p0 = $Login$Update.init;
+      var login = _p0._0;
+      var loginFx = _p0._1;
+      var _p1 = $Navigation$Update.init;
+      var nav = _p1._0;
+      var navFx = _p1._1;
+      return {ctor: "_Tuple2"
+             ,_0: A3($Nabu$Model.Model,nav,login,$Maybe.Nothing)
+             ,_1: $Effects.batch(_U.list([A2($Effects.map,Navigate,navFx),A2($Effects.map,Authenticate,loginFx)]))};
+   }();
+   var update = F2(function (action,model) {
+      var _p2 = action;
+      if (_p2.ctor === "Navigate") {
+            var _p3 = A2($Navigation$Update.update,_p2._0,model.navigation);
+            var nav = _p3._0;
+            var fx = _p3._1;
+            return {ctor: "_Tuple2",_0: A3($Nabu$Model.Model,nav,model.login,model.session),_1: A2($Effects.map,Navigate,fx)};
+         } else {
+            var _p4 = A2($Login$Update.update,_p2._0,model.login);
+            var auth = _p4._0;
+            var fx = _p4._1;
+            return {ctor: "_Tuple2",_0: A3($Nabu$Model.Model,model.navigation,auth,auth.user),_1: A2($Effects.map,Authenticate,fx)};
+         }
+   });
+   return _elm.Nabu.Update.values = {_op: _op,init: init,update: update,Navigate: Navigate,Authenticate: Authenticate};
 };
 Elm.Navigation = Elm.Navigation || {};
 Elm.Navigation.View = Elm.Navigation.View || {};
@@ -11277,61 +11345,32 @@ Elm.Navigation.View.make = function (_elm) {
    return _elm.Navigation.View.values = {_op: _op,view: view};
 };
 Elm.Nabu = Elm.Nabu || {};
-Elm.Nabu.make = function (_elm) {
+Elm.Nabu.View = Elm.Nabu.View || {};
+Elm.Nabu.View.make = function (_elm) {
    "use strict";
    _elm.Nabu = _elm.Nabu || {};
-   if (_elm.Nabu.values) return _elm.Nabu.values;
+   _elm.Nabu.View = _elm.Nabu.View || {};
+   if (_elm.Nabu.View.values) return _elm.Nabu.View.values;
    var _U = Elm.Native.Utils.make(_elm),
    $Basics = Elm.Basics.make(_elm),
    $Debug = Elm.Debug.make(_elm),
-   $Effects = Elm.Effects.make(_elm),
    $Html = Elm.Html.make(_elm),
    $List = Elm.List.make(_elm),
-   $Login$Model = Elm.Login.Model.make(_elm),
-   $Login$Update = Elm.Login.Update.make(_elm),
    $Login$View = Elm.Login.View.make(_elm),
    $Maybe = Elm.Maybe.make(_elm),
-   $Navigation$Model = Elm.Navigation.Model.make(_elm),
-   $Navigation$Update = Elm.Navigation.Update.make(_elm),
+   $Nabu$Model = Elm.Nabu.Model.make(_elm),
+   $Nabu$Update = Elm.Nabu.Update.make(_elm),
    $Navigation$View = Elm.Navigation.View.make(_elm),
    $Result = Elm.Result.make(_elm),
    $Signal = Elm.Signal.make(_elm);
    var _op = {};
-   var Authenticate = function (a) {    return {ctor: "Authenticate",_0: a};};
-   var Navigate = function (a) {    return {ctor: "Navigate",_0: a};};
    var view = F2(function (address,model) {
       return A2($Html.div,
       _U.list([]),
-      _U.list([A3($Navigation$View.view,A2($Signal.forwardTo,address,Navigate),model.navigation,model.session)
-              ,A2($Login$View.view,A2($Signal.forwardTo,address,Authenticate),model.login)]));
+      _U.list([A3($Navigation$View.view,A2($Signal.forwardTo,address,$Nabu$Update.Navigate),model.navigation,model.session)
+              ,A2($Login$View.view,A2($Signal.forwardTo,address,$Nabu$Update.Authenticate),model.login)]));
    });
-   var Model = F3(function (a,b,c) {    return {navigation: a,login: b,session: c};});
-   var init = function () {
-      var _p0 = $Login$Update.init;
-      var login = _p0._0;
-      var loginFx = _p0._1;
-      var _p1 = $Navigation$Update.init;
-      var nav = _p1._0;
-      var navFx = _p1._1;
-      return {ctor: "_Tuple2"
-             ,_0: A3(Model,nav,login,$Maybe.Nothing)
-             ,_1: $Effects.batch(_U.list([A2($Effects.map,Navigate,navFx),A2($Effects.map,Authenticate,loginFx)]))};
-   }();
-   var update = F2(function (action,model) {
-      var _p2 = action;
-      if (_p2.ctor === "Navigate") {
-            var _p3 = A2($Navigation$Update.update,_p2._0,model.navigation);
-            var nav = _p3._0;
-            var fx = _p3._1;
-            return {ctor: "_Tuple2",_0: A3(Model,nav,model.login,model.session),_1: A2($Effects.map,Navigate,fx)};
-         } else {
-            var _p4 = A2($Login$Update.update,_p2._0,model.login);
-            var auth = _p4._0;
-            var fx = _p4._1;
-            return {ctor: "_Tuple2",_0: A3(Model,model.navigation,auth,auth.user),_1: A2($Effects.map,Authenticate,fx)};
-         }
-   });
-   return _elm.Nabu.values = {_op: _op,Model: Model,init: init,Navigate: Navigate,Authenticate: Authenticate,update: update,view: view};
+   return _elm.Nabu.View.values = {_op: _op,view: view};
 };
 Elm.Main = Elm.Main || {};
 Elm.Main.make = function (_elm) {
@@ -11344,13 +11383,15 @@ Elm.Main.make = function (_elm) {
    $Effects = Elm.Effects.make(_elm),
    $List = Elm.List.make(_elm),
    $Maybe = Elm.Maybe.make(_elm),
-   $Nabu = Elm.Nabu.make(_elm),
+   $Nabu$Model = Elm.Nabu.Model.make(_elm),
+   $Nabu$Update = Elm.Nabu.Update.make(_elm),
+   $Nabu$View = Elm.Nabu.View.make(_elm),
    $Result = Elm.Result.make(_elm),
    $Signal = Elm.Signal.make(_elm),
    $StartApp = Elm.StartApp.make(_elm),
    $Task = Elm.Task.make(_elm);
    var _op = {};
-   var app = $StartApp.start({init: $Nabu.init,view: $Nabu.view,update: $Nabu.update,inputs: _U.list([])});
+   var app = $StartApp.start({init: $Nabu$Update.init,view: $Nabu$View.view,update: $Nabu$Update.update,inputs: _U.list([])});
    var main = app.html;
    var tasks = Elm.Native.Task.make(_elm).performSignal("tasks",app.tasks);
    return _elm.Main.values = {_op: _op,app: app,main: main};

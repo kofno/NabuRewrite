@@ -3,7 +3,10 @@ module Main where
 import Task
 import Effects
 import StartApp
-import Nabu
+
+import Nabu.Model  as Nabu
+import Nabu.Update as Nabu
+import Nabu.View   as Nabu
 
 app : StartApp.App Nabu.Model
 app = StartApp.start
