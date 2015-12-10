@@ -16,6 +16,8 @@ it initializes, it tries to establish if a session exists.
 I created a navigation component. Navigation renders based differently if
 there's an active user session of not.
 
+Each component is split into three elm files. Model, Update and View.
+
 There is a library for talking to couchdb. It only talks to the _session end
 point.
 
